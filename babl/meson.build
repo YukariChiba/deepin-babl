@@ -138,7 +138,7 @@ babl = library(
   link_args: babl_link_args,
   link_with: simd_extra,
   dependencies: babl_deps,
-  link_depends: version_script,
+  link_depends: version_script[0],
   version: so_version,
   install: true,
 )
@@ -156,6 +156,7 @@ if build_gir
     namespace: 'Babl',
     nsversion: api_version,
     header: 'babl.h',
+    export_packages: 'babl-0.1',
     install: true,
   )
 
@@ -165,4 +166,6 @@ if build_gir
       install: true,
     )
   endif
+else
+  babl_gir = []
 endif

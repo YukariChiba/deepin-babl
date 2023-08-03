@@ -106,8 +106,20 @@ babl_gc_fishes (void)
      fprintf (stdout, "\e[H\e[2J");
   }
   babl_fish_class_for_each (gc_fishes, &context);
-  //malloc_trim (0); 
-  //  is responsibility of higher layers
+}
+
+static long babl_conv_counter = 0;
+
+void
+babl_gc (void)
+{
+  if (babl_conv_counter > 1000 * 1000 * 10) // run gc every 10 megapixels
+  {
+    babl_conv_counter = 0;
+    babl_gc_fishes ();
+    //malloc_trim (0); 
+    //  is responsibility of higher layers
+  }
 }
 
 #define BABL_LIKELY(x)      __builtin_expect(!!(x), 1)
@@ -287,7 +299,7 @@ static void measure_timings(void)
    LUT_LOG("BABL_LUT_UNUSED_LIMIT=%.1f\n", lut_unused_minutes_limit);
 
    LUT_LOG("measuring lut timings          \n");
-   for (int p = 0; p < sizeof (pairs)/sizeof(pairs[0]);p++)
+   for (size_t p = 0; p < sizeof (pairs)/sizeof(pairs[0]);p++)
    {
      int source_bpp = pairs[p][0];
      int dest_bpp = pairs[p][1];
@@ -1227,13 +1239,7 @@ babl_fish_path_process (const Babl *babl,
   }
   else
   {
-    static long conv_counter = 0;
-    conv_counter+=n;
-    if (conv_counter > 1000 * 1000 * 10) // run gc every 10 megapixels
-    {
-      conv_counter = 0;
-      babl_gc_fishes ();
-    }
+    babl_conv_counter+=n;
   }
   process_conversion_path (babl->fish_path.conversion_list,
                            source,
@@ -1365,7 +1371,7 @@ babl_process_rows (const Babl *fish,
 #include <stdint.h>
 
 #define BABL_ALIGN 16
-static void inline *align_16 (unsigned char *ret)
+static inline void *align_16 (unsigned char *ret)
 {
   int offset = BABL_ALIGN - ((uintptr_t) ret) % BABL_ALIGN;
   ret = ret + offset;

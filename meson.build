@@ -1,6 +1,6 @@
 project('babl', 'c',
   license: 'LGPL3+',
-  version: '0.1.92',
+  version: '0.1.98',
   meson_version: '>=0.54.0',
   default_options: [
     'buildtype=debugoptimized'
@@ -55,7 +55,7 @@ lib_name    = meson.project_name() + '-' + api_version
 stability_version_number = (major_version != 0 ? minor_version : micro_version)
 stable = (stability_version_number % 2 == 0)
 
-conf.set10('BABL_UNSTABLE', not stable, Description:
+conf.set10('BABL_UNSTABLE', not stable, description:
   'Define to 1 if this is an unstable version of BABL.')
 
 conf.set       ('BABL_MAJOR_VERSION',    '@0@'.format(major_version))
@@ -493,6 +493,7 @@ subdir('tools')
 if build_docs
   subdir('docs')
 endif
+subdir('bin')
 
 # Create README file from web page
 if w3m_bin.found() and build_docs
@@ -531,13 +532,14 @@ babl_dep = declare_dependency(
   link_with : babl,
   sources: [
     babl_version_h,
-    is_variable('babl_gir') ? babl_gir : []
+    build_gir ? babl_gir : []
   ],
   variables: {
     'babl_path'   : babl_extensions_build_dir,
     'babl_libdir' : babl_library_build_dir,
   },
 )
+meson.override_dependency('babl', babl_dep)
 
 ################################################################################
 # Build summary
